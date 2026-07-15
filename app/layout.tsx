@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import { Cinzel, Poppins } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/app/context/CartContext";
-import Navbar from "@/app/components/Navbar";
-import MobileNav from "@/app/components/MobileNav";
-import Footer from "@/app/components/Footer";
+import LayoutShell from "@/app/components/LayoutShell";
 
 const cinzel = Cinzel({
   variable: "--font-cinzel",
@@ -39,12 +37,10 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <CartProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <MobileNav />
+          <LayoutShell>{children}</LayoutShell>
         </CartProvider>
       </body>
     </html>
   );
 }
+

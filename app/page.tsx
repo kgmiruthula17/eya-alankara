@@ -8,6 +8,11 @@ import { ArrowRight, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import AnimatedSection from "@/app/components/AnimatedSection";
 import { categoryImages } from "@/app/data/products";
 
+interface CategoryData {
+  name: string;
+  image?: string;
+}
+
 /* ─── Hero Carousel Data ─── */
 const heroSlides = [
   {
@@ -24,8 +29,8 @@ const heroSlides = [
   },
 ];
 
-/* ─── Collection Categories ─── */
-const collections = [
+/* ─── Collection Categories (fallback) ─── */
+const defaultCollections = [
   { name: "Necklace Sets", description: "Timeless elegance for every bride" },
   { name: "Bangles", description: "Circles of tradition and grace" },
   { name: "Earrings", description: "Adornments that frame your beauty" },
@@ -54,12 +59,41 @@ const testimonials = [
 export default function HomePage() {
   /* ─── Hero Carousel State ─── */
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [collections, setCollections] = useState(defaultCollections);
+  const [catImages, setCatImages] = useState<Record<string, string>>(categoryImages);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
     }, 5000);
     return () => clearInterval(timer);
+  }, []);
+
+  /* ─── Fetch categories from API ─── */
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.categories && data.categories.length > 0) {
+          const cats = data.categories as CategoryData[];
+          setCollections(
+            cats.map((c) => ({
+              name: c.name,
+              description:
+                defaultCollections.find((dc) => dc.name === c.name)?.description ||
+                `Explore our ${c.name} collection`,
+            }))
+          );
+          const imgs: Record<string, string> = { ...categoryImages };
+          cats.forEach((c) => {
+            if (c.image) imgs[c.name] = c.image;
+          });
+          setCatImages(imgs);
+        }
+      })
+      .catch(() => {
+        // Fall back to defaults silently
+      });
   }, []);
 
   /* ─── Testimonial Carousel State ─── */
@@ -210,7 +244,7 @@ export default function HomePage() {
                     {/* Image */}
                     <div className="w-full h-full transition-transform duration-700 group-hover:scale-110 bg-warm-gray">
                       <Image
-                        src={categoryImages[col.name] || "/necksets/1.png"}
+                        src={catImages[col.name] || "/necksets/1.png"}
                         alt={col.name}
                         fill
                         sizes="(max-width: 640px) 50vw, 25vw"
